@@ -1,0 +1,6 @@
+@Downstream.MockApi_HostAddress = http://localhost:5099
+
+GET {{Downstream.MockApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
