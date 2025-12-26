@@ -24,10 +24,17 @@ public class RateLimitingMiddleware
             return;
         }
 
-        var isAllowed = _rateLimitService.IsRequestAllowed(apiKey);
+        var result = _rateLimitService.Evaluate(apiKey);
+
+        //add rate limit headers to response
+        context.Response.Headers["X-RateLimit-Limit"] = result.Limit.ToString();
+        context.Response.Headers["X-RateLimit-Remaining"] = result.Remaining.ToString();
+        context.Response.Headers["X-RateLimit-Reset"] = new DateTimeOffset(result.ResetTime)
+            .ToUnixTimeSeconds()
+            .ToString();
 
         //if not allowed, block the request
-        if (!isAllowed)
+        if (!result.IsAllowed)
         {
             context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
             await context.Response.WriteAsync("Rate limit exceeded. Try again later.");

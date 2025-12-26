@@ -1,6 +1,8 @@
+using Gateway.Api.Models;
+
 namespace Gateway.Api.Services.Interfaces;
 
 public interface IRateLimitService
 {
-    bool IsRequestAllowed(string apiKey);
+    RateLimitResult Evaluate(string apiKey);
 }

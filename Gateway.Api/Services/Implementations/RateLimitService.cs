@@ -12,7 +12,7 @@ public class RateLimitService : IRateLimitService
 
     private static readonly TimeSpan WindowDuration = TimeSpan.FromMinutes(1);
 
-    public bool IsRequestAllowed(string apiKey)
+    public RateLimitResult Evaluate(string apiKey)
     {
         var now = DateTime.UtcNow;
 
@@ -30,7 +30,16 @@ public class RateLimitService : IRateLimitService
 
         entry.RequestCount++;
 
-        //If limit exceeded, block request
-        return entry.RequestCount <= MaxRequests;
+        var remaining = MaxRequests - entry.RequestCount;
+
+        var resetTime = entry.WindowStart.Add(WindowDuration);
+
+        return new RateLimitResult
+        {
+            IsAllowed = entry.RequestCount <= MaxRequests,
+            Limit = MaxRequests,
+            Remaining = Math.Max(remaining, 0),
+            ResetTime = resetTime,
+        };
     }
 }
