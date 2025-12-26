@@ -13,6 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<IProxyService, ProxyService>();
+builder.Services.AddSingleton<IRateLimitService, RateLimitService>();
 
 var app = builder.Build();
 

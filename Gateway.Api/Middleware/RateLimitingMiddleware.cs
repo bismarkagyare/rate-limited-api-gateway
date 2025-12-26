@@ -1,5 +1,4 @@
-using System.Collections.Concurrent;
-using Gateway.Api.Models;
+using Gateway.Api.Services.Interfaces;
 
 namespace Gateway.Api.Middleware;
 
@@ -7,15 +6,12 @@ public class RateLimitingMiddleware
 {
     private readonly RequestDelegate _next;
 
-    private static readonly ConcurrentDictionary<string, RateLimitEntry> _rateLimits = new();
+    private readonly IRateLimitService _rateLimitService;
 
-    private const int MaxRequests = 5;
-
-    private static readonly TimeSpan WindowDuration = TimeSpan.FromMinutes(1);
-
-    public RateLimitingMiddleware(RequestDelegate next)
+    public RateLimitingMiddleware(RequestDelegate next, IRateLimitService rateLimitService)
     {
         _next = next;
+        _rateLimitService = rateLimitService;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -28,27 +24,13 @@ public class RateLimitingMiddleware
             return;
         }
 
-        var now = DateTime.UtcNow;
+        var isAllowed = _rateLimitService.IsRequestAllowed(apiKey);
 
-        var entry = _rateLimits.GetOrAdd(
-            apiKey,
-            _ => new RateLimitEntry { RequestCount = 0, WindowStart = now }
-        );
-
-        //check if the current window has expired and reset
-        if (now - entry.WindowStart > WindowDuration)
-        {
-            entry.RequestCount = 0;
-            entry.WindowStart = now;
-        }
-
-        entry.RequestCount++;
-
-        //in case its exceeded
-        if (entry.RequestCount > MaxRequests)
+        //if not allowed, block the request
+        if (!isAllowed)
         {
             context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-            await context.Response.WriteAsync("Rate limit exceeded. Try again later");
+            await context.Response.WriteAsync("Rate limit exceeded. Try again later.");
             return;
         }
 
