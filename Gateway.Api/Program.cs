@@ -23,6 +23,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
+app.UseMiddleware<RateLimitingMiddleware>();
 app.UseHttpsRedirection();
 
 // Map attribute-routed controllers (e.g. HealthController)
