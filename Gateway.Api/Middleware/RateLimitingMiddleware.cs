@@ -1,3 +1,5 @@
+using Gateway.Api.Common.Constants;
+using Gateway.Api.Common.Errors;
 using Gateway.Api.Services.Interfaces;
 
 namespace Gateway.Api.Middleware;
@@ -16,7 +18,7 @@ public class RateLimitingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var apiKey = context.Request.Headers["X-API-Key"].ToString();
+        var apiKey = context.Request.Headers[HeaderNames.ApiKey].ToString();
 
         if (string.IsNullOrEmpty(apiKey))
         {
@@ -27,9 +29,9 @@ public class RateLimitingMiddleware
         var result = _rateLimitService.Evaluate(apiKey);
 
         //add rate limit headers to response
-        context.Response.Headers["X-RateLimit-Limit"] = result.Limit.ToString();
-        context.Response.Headers["X-RateLimit-Remaining"] = result.Remaining.ToString();
-        context.Response.Headers["X-RateLimit-Reset"] = new DateTimeOffset(result.ResetTime)
+        context.Response.Headers[HeaderNames.RateLimitLimit] = result.Limit.ToString();
+        context.Response.Headers[HeaderNames.RateLimitRemaining] = result.Remaining.ToString();
+        context.Response.Headers[HeaderNames.RateLimitReset] = new DateTimeOffset(result.ResetTime)
             .ToUnixTimeSeconds()
             .ToString();
 
@@ -37,7 +39,7 @@ public class RateLimitingMiddleware
         if (!result.IsAllowed)
         {
             context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-            await context.Response.WriteAsync("Rate limit exceeded. Try again later.");
+            await context.Response.WriteAsync(ErrorMessages.RateLimitExceeded);
             return;
         }
 

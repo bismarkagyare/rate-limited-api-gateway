@@ -1,10 +1,11 @@
+using Gateway.Api.Common.Constants;
+using Gateway.Api.Common.Errors;
+
 namespace Gateway.Api.Middleware;
 
 public class ApiKeyAuthenticationMiddleware
 {
     private readonly RequestDelegate _next;
-
-    private const string ApiKeyHeaderName = "X-API-Key";
 
     private const string validApiKey = "test-api-key";
 
@@ -15,17 +16,17 @@ public class ApiKeyAuthenticationMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (!context.Request.Headers.TryGetValue(ApiKeyHeaderName, out var apikey))
+        if (!context.Request.Headers.TryGetValue(HeaderNames.ApiKey, out var apikey))
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await context.Response.WriteAsync("API key is missing");
+            await context.Response.WriteAsync(ErrorMessages.MissingApiKey);
             return;
         }
 
         if (apikey != validApiKey)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await context.Response.WriteAsync("Invalid API Key");
+            await context.Response.WriteAsync(ErrorMessages.InvalidApiKey);
             return;
         }
 

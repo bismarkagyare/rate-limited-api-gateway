@@ -1,3 +1,4 @@
+using Gateway.Api.Common.Constants;
 using Gateway.Api.Configuration;
 using Gateway.Api.Models;
 using Gateway.Api.Services.Interfaces;
@@ -23,7 +24,7 @@ public class RedisRateLimitService : IRateLimitService
 
     public RateLimitResult Evaluate(string apiKey)
     {
-        var redisKey = $"ratelimit:{apiKey}";
+        var redisKey = RedisKeys.RateLimit(apiKey);
 
         var requestCount = _database.StringIncrement(redisKey);
 
