@@ -4,7 +4,7 @@ using Gateway.Api.Services.Interfaces;
 
 namespace Gateway.Api.Services.Implementations;
 
-public class RateLimitService : IRateLimitService
+public class InMemoryRateLimitService : IRateLimitService
 {
     private readonly ConcurrentDictionary<string, RateLimitEntry> _rateLimits = new();
 
