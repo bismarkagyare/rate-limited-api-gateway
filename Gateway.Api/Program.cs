@@ -1,6 +1,7 @@
 using Gateway.Api.Middleware;
 using Gateway.Api.Services.Implementations;
 using Gateway.Api.Services.Interfaces;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,12 @@ builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<IProxyService, ProxyService>();
-builder.Services.AddSingleton<IRateLimitService, RateLimitService>();
+builder.Services.AddSingleton<IRateLimitService, RedisRateLimitService>();
+
+// Register Redis connection
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect("localhost:6379")
+);
 
 var app = builder.Build();
 
